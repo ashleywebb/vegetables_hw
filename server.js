@@ -4,6 +4,7 @@ const vegetables = require('./models/vegetables'); // importing vegetables from 
 const reactViews = require('express-react-views')
 const createEngine = reactViews.createEngine
 const renderFile = createEngine()
+const mongoose = require('mongoose')
 
 
 app.set('view engine', 'jsx');
@@ -21,13 +22,25 @@ app.get('/', (req, res) => {
     res.send(`<h1>hello</h1>`)
 });
 
-app.get('/vegetables', (req, res) => {
-    res.render("/home/runner/FunctionalGloriousInstitute/views/vegetables/Index.jsx", { vegetables })
+// app.get('/vegetables', (req, res) => {
+//     res.render("Index", { vegetables })
+// });
+
+app.get('/vegetables', (req,res) => {
+    vegetables.find({}, (err, foundVegetables) => {
+        if (err) {
+            res.status(400).send(err)
+        } else {
+            res.render('Index', {
+                vegetabless: foundVegetables
+            })
+        }
+    })
 });
 
 //NEW week11day01
 app.get('/vegetables/new', (req, res) => {
-    res.render("/home/runner/FunctionalGloriousInstitute/views/vegetables/New.jsx");
+    res.render("New");
 })
 
 //DELETE
@@ -37,21 +50,35 @@ app.get('/vegetables/new', (req, res) => {
 //CREATE
 app.post('/vegetables', (req, res) => {
     if(req.body.readyToEat === 'on'){
-        req.body.readyToEat = true
+        req.body.readyToEat = true;
     } else {
-        req.body.readyToEat = false
+        req.body.readyToEat = false;
     }
-    vegetables.push(req.body)
-    res.redirect('/vegetables')
+
+    vegetables.create(req.body, (err, createdVegetable) => {
+        if (err) {
+            res.status(403).send(err)
+        } else {
+            console.log(createdVegetable)
+            res.redirect('/fruits')
+        }
+    })
+    
 })
 
 //EDIT
 
 //SHOW week10day3
-app.get('/vegetables/:indexOfvegetablesArray', (req, res) => {
-    res.render('Show', {
-        vegetable: vegetables[req.params.indexOfvegetablesArray]
-    })
+app.get('/vegetables/:id', (req, res) => {
+    vegetables.findById(req.params.id, (err, foundVegetables) => {
+        if(err) {
+            res.status(400).send(err)
+        } else {
+            res.render('Show', {
+                vegetabless: foundVegetables
+            })
+        }
+    })    
 })
 
 
